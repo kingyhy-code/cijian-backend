@@ -1,0 +1,134 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration
+  application:
+    name: cijian-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+      config:
+        import-check:
+          enabled: false
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        file-extension: yml
+    gateway:
+      routes:
+        # --- 用户服务 ---
+        - id: cijian-user
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=1
+        # --- 内容服务 ---
+        - id: cijian-content
+          uri: lb://cijian-content
+          predicates:
+            - Path=/api/content/**
+          filters:
+            - StripPrefix=2
+        # --- 互动服务 ---
+        - id: cijian-interaction
+          uri: lb://cijian-interaction
+          predicates:
+            - Path=/api/interaction/**
+          filters:
+            - StripPrefix=2
+        # --- 画像服务 ---
+        - id: cijian-profile
+          uri: lb://cijian-profile
+          predicates:
+            - Path=/api/profile/**
+          filters:
+            - StripPrefix=1
+        # --- 搜索服务 ---
+        - id: cijian-search
+          uri: lb://cijian-search
+          predicates:
+            - Path=/api/search/**
+        # --- Agent 智能体服务（Python LangGraph，全部 AI 能力，直连不经过 Nacos） ---
+        - id: cijian-agent
+          uri: http://localhost:8000
+          predicates:
+            - Path=/api/agent/**
+          filters:
+            - StripPrefix=1
+        # --- 文件上传 ---
+        - id: cijian-upload
+          uri: lb://cijian-operation
+          predicates:
+            - Path=/api/upload/**
+        # --- 静态资源（上传的图片） ---
+        - id: cijian-uploads-static
+          uri: lb://cijian-operation
+          predicates:
+            - Path=/uploads/**
+        # --- 运营服务 ---
+        - id: cijian-operation
+          uri: lb://cijian-operation
+          predicates:
+            - Path=/api/operation/**
+        # --- OpenAPI 文档代理路由 ---
+        - id: user-service-api-docs
+          uri: lb://user-service
+          predicates:
+            - Path=/v3/api-docs/user-service
+          filters:
+            - RewritePath=/v3/api-docs/user-service, /v3/api-docs
+        - id: cijian-content-api-docs
+          uri: lb://cijian-content
+          predicates:
+            - Path=/v3/api-docs/cijian-content
+          filters:
+            - RewritePath=/v3/api-docs/cijian-content, /v3/api-docs
+        - id: cijian-interaction-api-docs
+          uri: lb://cijian-interaction
+          predicates:
+            - Path=/v3/api-docs/cijian-interaction
+          filters:
+            - RewritePath=/v3/api-docs/cijian-interaction, /v3/api-docs
+        - id: cijian-profile-api-docs
+          uri: lb://cijian-profile
+          predicates:
+            - Path=/v3/api-docs/cijian-profile
+          filters:
+            - RewritePath=/v3/api-docs/cijian-profile, /v3/api-docs
+        - id: cijian-operation-api-docs
+          uri: lb://cijian-operation
+          predicates:
+            - Path=/v3/api-docs/cijian-operation
+          filters:
+            - RewritePath=/v3/api-docs/cijian-operation, /v3/api-docs
+        - id: cijian-search-api-docs
+          uri: lb://cijian-search
+          predicates:
+            - Path=/v3/api-docs/cijian-search
+          filters:
+            - RewritePath=/v3/api-docs/cijian-search, /v3/api-docs
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+# 日志配置
+logging:
+  level:
+    com.cijian.gateway: info
+  file:
+    name: logs/${spring.application.name}.log
+spring.cloud.nacos.discovery.ip: 127.0.0.1

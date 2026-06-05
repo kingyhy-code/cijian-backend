@@ -1,0 +1,60 @@
+server:
+  port: 8086
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+  application:
+    name: cijian-operation
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+      config:
+        import-check:
+          enabled: false
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        file-extension: yml
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/cijian?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:1230}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:localhost:9876}
+  producer:
+    group: cijian-operation-producer
+
+logging:
+  level:
+    com.cijian.operation: info
+  file:
+    name: logs/${spring.application.name}.log
+spring.cloud.nacos.discovery.ip: 127.0.0.1
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+# 静态资源映射（上传的图片通过 /uploads/** 访问）
+cijian:
+  upload:
+    path: ${user.dir}/cijian-operation/uploads

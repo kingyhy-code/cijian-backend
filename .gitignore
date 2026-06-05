@@ -1,0 +1,39 @@
+# Maven / Build
+target/
+BOOT-INF/
+META-INF/
+target_classes/
+target_unzip/
+*.jar
+*.class
+*.war
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Logs
+logs/
+*.log
+*.gz
+
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Environment & Secrets
+.env
+.env.*
+
+# Claude / CodeGraph
+.claude/
+.codegraph/
+
+# Runtime
+tomcat.*/
+uploads/
+nul
