@@ -210,13 +210,112 @@ D:\Cijian\
 | PUT | `/api/operation/review/{id}/reject` | 审核驳回 |
 | DELETE | `/api/operation/review/{id}` | 软删除作品 |
 | DELETE | `/api/operation/review/{id}/force` | **彻底删除**（物理删除，级联清理） |
+| GET | `/api/operation/sensitive-word` | 敏感词分页列表 |
+| POST | `/api/operation/sensitive-word` | 添加敏感词 |
+| DELETE | `/api/operation/sensitive-word/{id}` | 删除 |
+| POST | `/api/operation/sensitive-word/check` | 检测文本 |
+| POST | `/api/operation/sensitive-word/filter` | 过滤替换 |
+| GET | `/api/operation/users` | 用户列表 |
+| PUT | `/api/operation/users/{id}/disable` | 禁用用户 |
+| PUT | `/api/operation/users/{id}/enable` | 启用用户 |
+| DELETE | `/api/operation/users/{id}` | 软删除用户 |
+| DELETE | `/api/operation/users/{id}/force` | **彻底删除**（物理删除，级联清理作品/评论等） |
+| GET | `/api/operation/masterpiece` | 名家作品列表（支持 `?country=` 筛选） |
+| POST | `/api/operation/masterpiece` | 添加名家作品（含 `country`/`tagNames`/`dynasty`） |
+| PUT | `/api/operation/masterpiece/{id}` | 编辑（支持更新 `country`/`tagNames`） |
+| DELETE | `/api/operation/masterpiece/{id}` | 软删除 |
+| DELETE | `/api/operation/masterpiece/{id}/force` | **彻底删除**（物理删除，级联清理） |
+| GET | `/api/operation/masterpiece/countries` | 已用国别列表（供下拉选择） |
+| GET | `/api/operation/tags` | 标签列表（分页，按使用次数排序） |
+| POST | `/api/operation/tags` | 新增标签 |
+| PUT | `/api/operation/tags/{id}` | 编辑标签名 |
+| DELETE | `/api/operation/tags/{id}` | 删除标签 |
 
-- [x] **后台标签管理** — 独立标签 CRUD，经典作品上传支持 /
-- [x] **物理删除** — 后台  端点支持彻底删除
-- [x] **话题系统** — 话题创建/作品计数/编辑切换，广场话题排行
-- [x] **灵感引用** — 作品发布时可声明灵感来源，源作品引用计数，详情页「基于此创作」
-- [x] **排序优化** — 时间衰减算法  防霸榜
-- [x] **ES 索引自动化** — 启动时全量同步 + RocketMQ 增量更新，reindex 手动重建
-- [x] **标签搜索** — 搜索页支持标签筛选，发布页标签输入实时补全
-- [x] **文档批改** — 前端 mammoth 解析 .docx，Agent 逐段分析，左右分栏对照展示
+## 数据库
 
+15 张表（不含 Agent 的 SQLite），均使用 InnoDB + utf8mb4_unicode_ci + 逻辑删除模式：
+
+| 表 | 所属模块 | 简述 |
+|---|---|---|
+| `user` | cijian-user | 用户账号（email/password/nickname/status/role） |
+| `work` | cijian-content | 作品（title/content/status/country/5 个计数器） |
+| `tag` | cijian-content | 标签（name 唯一，use_count） |
+| `work_tag_rel` | cijian-content | 作品-标签关联 |
+| `topic` | cijian-content | 写作话题 |
+| `inspiration_ref` | cijian-content | 灵感引用链 |
+| `comment` | cijian-interaction | 评论（parent_id 嵌套） |
+| `like` | cijian-interaction | 多目标点赞（work/comment/sentence） |
+| `collection` | cijian-interaction | 多类型收藏 |
+| `annotation` | cijian-interaction | 划词批注 |
+| `follow` | cijian-interaction | 关注关系 |
+| `notification` | cijian-interaction | 互动通知（类型/目标/已读） |
+| `conversation` | cijian-interaction | 私信会话（user1/user2 唯一） |
+| `message` | cijian-interaction | 私信消息（会话/发送者/接收者/已读） |
+| `sensitive_word` | cijian-operation | 敏感词库 |
+
+> `lianci_log` 表已随 `cijian-ai` 模块移除，炼词记录现在由 Agent 的 SQLite 管理。
+
+## 当前进度
+
+### 已完成
+
+- [x] **用户服务** — 注册/登录/登出，BCrypt 加密，JWT + Redis 会话
+- [x] **内容服务** — 作品 CRUD，多 Feed 流，标签/专题/灵感引用，浏览计数
+- [x] **互动服务** — 点赞/评论(嵌套)/收藏/批注/关注，计数器跨服务同步
+- [x] **通知系统** — 点赞/评论/收藏/关注/私信自动通知，分类筛选，未读计数
+- [x] **私信系统** — 互关后私聊，会话管理，消息已读
+- [x] **用户画像** — 作品统计/标签分布/收藏导出框架
+- [x] **AI Agent 服务** — Python LangGraph Agent（规则检测/评估/润色/帮写/文学分析/导读/对话/画像/出题/批改，7 个工具，LLM 自主决策）
+- [x] **搜索服务** — ES 全文检索，索引同步，无 ES 时优雅降级
+- [x] **运营服务** — 数据看板、内容审核、敏感词库、用户管理、名家管理
+- [x] **公共模块** — R 响应包装/JWT/Redis/BeanCopy/分页/异常处理
+- [x] **网关** — 6 个下游服务 + Agent 路由，统一认证，StripPrefix
+- [x] **数据库** — 15 张表
+- [x] **Docker** — docker-compose 全栈中间件（Redis/Nacos/MySQL/RocketMQ/ES/Seata）
+- [x] **网关认证** — JWT 校验 + X-User-Id 注入统一到网关 WebFilter
+- [x] **API 文档** — 各模块集成 SpringDoc OpenAPI + Swagger UI
+- [x] **测试覆盖** — JwtUtil + UserService 单元测试（17 用例）
+- [x] **Seata 分布式事务** — DataSourceProxy 已配置，@GlobalTransactional 已接入核心跨服务方法
+- [x] **JWT 续期** — `/user/token/refresh` 端点
+- [x] **密码重置** — 6 位数字验证码，Redis 30 分钟有效
+- [x] **邮箱注册校验** — 注册时 MX 记录查询 + 60+ 一次性邮箱域名拦截
+- [x] **邮件服务** — 原生 SMTP 实现，已接入 QQ 邮箱
+- [x] **网关 Swagger 聚合** — 微服务 API 文档聚合到网关统一入口
+- [x] **ES 索引初始化** — 启动时自动创建 `cijian_works` 索引
+- [x] **经典作品国别分类** — `/work/masterpiece` 支持 `?country=` 筛选
+- [x] **后台标签管理** — 独立标签 CRUD，经典作品上传支持 `country`/`tagNames`
+- [x] **物理删除** — 后台 `/{id}/force` 端点支持彻底删除
+
+
+---
+
+## 本地启动
+
+详见 `STARTUP.md`。
+
+### 端口表
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| gateway | 8080 | API 网关 |
+| user | 8081 | 用户服务 |
+| content | 8082 | 内容服务 |
+| interaction | 8083 | 互动服务 |
+| profile | 8084 | 画像服务 |
+| operation | 8086 | 运营服务 |
+| search | 8087 | 搜索服务 |
+| Agent | 8000 | Python AI 服务（独立项目） |
+| 前端 | 5173 | Vite 开发服务器 |
+
+### 前置依赖
+
+- **MySQL**: 本地 3306 端口，root/1230，数据库 `cijian`
+- **Nacos**: Docker 8848 端口
+- **Redis**: Docker 6379 端口
+- **RocketMQ**: Docker 9876/10911 端口
+- **Elasticsearch**: Docker 9200 端口
+- **Python Agent**: `D:/CijianAgent`，需配置 `.env` 中的 `AI_API_KEY`
+
+---
+
+*最后更新：2026-05-30 · 7 个 Java 模块 + 1 个 Python Agent · 全栈可运行*
