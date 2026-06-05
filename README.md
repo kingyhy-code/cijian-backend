@@ -157,9 +157,9 @@ D:\Cijian\
 | GET | `/profile/lianci/{userId}` | 炼词窗报告 |
 | GET | `/profile/collections/export/{userId}` | 收藏导出（占位） |
 
-### AI Agent 服务 (:8001)
+### AI Agent 服务 (:8000)
 
-全部 AI 能力由 Python Agent 提供，Gateway 路由 `/api/agent/**` → Agent `:8001`。
+全部 AI 能力由 Python Agent 提供，Gateway 路由 `/api/agent/**` → Agent `:8000`。
 
 **Agent 对话与学习：**
 | 方法 | 路径 | 说明 |
@@ -286,23 +286,6 @@ D:\Cijian\
 - [x] **后台标签管理** — 独立标签 CRUD，经典作品上传支持 `country`/`tagNames`
 - [x] **物理删除** — 后台 `/{id}/force` 端点支持彻底删除
 
-### 待完成
-
-- [ ] **全面测试** — 当前仅覆盖 common + user 模块，其余模块待补
-- [ ] **ES IK 分词插件** — 当前使用 standard 分析器，安装 IK 后改为 ik_max_word/ik_smart
-- [ ] **RocketMQ 实时索引同步** — 消费者代码已就绪，待解决版本兼容问题
-
-### 已知问题
-
-| 问题 | 影响 | 优先级 |
-|------|------|--------|
-| 其余模块缺少测试 | 重构/迭代风险 | 中 |
-| ES IK 分词插件未安装 | 中文分词准确度不如 IK | 中 |
-| RocketMQ 客户端与 broker 版本不兼容 | 搜索索引无法实时同步 | 中 |
-| Feign 跨服务调用依赖 Nacos 注册 IP | 非 localhost 环境需配置 | 中 |
-| | | |
-| Docker MySQL 与本地 MySQL 端口冲突 | 开发机同时运行需改端口映射 | 低 |
-| 公司网络 SSL 拦截 | Maven 离线构建、LLM API 需跳过 SSL 校验 | 低 |
 
 ---
 
@@ -321,7 +304,7 @@ D:\Cijian\
 | profile | 8084 | 画像服务 |
 | operation | 8086 | 运营服务 |
 | search | 8087 | 搜索服务 |
-| Agent | 8001 | Python AI 服务（独立项目） |
+| Agent | 8000 | Python AI 服务（独立项目） |
 | 前端 | 5173 | Vite 开发服务器 |
 
 ### 前置依赖
