@@ -137,3 +137,26 @@ mvn clean install -DskipTests
 ├── cijian-operation/          # 运营服务
 └── cijian-search/             # 搜索服务
 ```
+
+## 生产部署
+
+### 启动
+
+```bash
+cd /root/Cijian && /root/startup.sh
+```
+
+启动脚本依次：Docker 基础设施（MySQL/Redis/Nacos/RocketMQ/ES）→ 数据库初始化 → 7 个 Java 微服务 → Python Agent → Nginx 前端。
+
+### Nginx 配置
+
+`/etc/nginx/conf.d/default.conf`：前端 SPA `try_files` + API 直连微服务端口（绕过 Gateway，JWT 鉴权由微服务自行处理）。
+
+### Seata
+
+生产环境通过 `--spring.autoconfigure.exclude=io.seata.spring.boot.autoconfigure.SeataAutoConfiguration` 禁用了 Seata 分布式事务。所有服务共用一个 MySQL 实例，无需跨库事务。等后续扩容多实例时，在 Nacos 配置 `cijian-tx-group` 并去掉启动参数即可恢复。
+
+### 重启后注意事项
+
+- MySQL 容器重建后密码为 `cijian2025`，需设置环境变量 `MYSQL_PASSWORD=cijian2025`
+- Python Agent 依赖已全局安装，不再通过 Docker 运行
